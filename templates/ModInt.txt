@@ -1,0 +1,57 @@
+class ModInt {
+   private:
+    int value;
+    int mod;
+
+   public:
+    ModInt() { this->mod = 1e9 + 7; }
+    ModInt(int value) : value(value) {}
+    ModInt(int value, int mod) : value(value), mod(mod) {}
+    int getValue() const { return value; }
+    int getMod() const { return mod; }
+    ModInt operator+(const ModInt& other) const {
+        return ModInt((value + 0LL + other.value) % mod, mod);
+    }
+    ModInt operator-(const ModInt& other) const {
+        return ModInt((value + 0LL - other.value + mod) % mod, mod);
+    }
+    ModInt operator*(const ModInt& other) const {
+        return ModInt((value * 1LL * other.value) % mod, mod);
+    }
+    ModInt operator/(const ModInt& other) const {
+        ModInt inv = other.modInverse();
+        return *this * inv;
+    }
+    ModInt operator%(const ModInt& other) const {
+        return ModInt(value % other.value, mod);
+    }
+    bool operator>(const ModInt& other) const { return value > other.value; }
+    bool operator<(const ModInt& other) const { return value < other.value; }
+    bool operator>=(const ModInt& other) const { return value >= other.value; }
+    bool operator<=(const ModInt& other) const { return value <= other.value; }
+    bool operator==(const ModInt& other) const { return value == other.value; }
+
+    ModInt modInverse() const {
+        ModInt a = this->value, r = 1;
+        int b = mod - 2;
+        while (b > 0) {
+            if (b & 1) {
+                r = r * a;
+            }
+            a = a * a;
+            b >>= 1;
+        }
+        return r;
+    }
+
+    friend ostream& operator<<(ostream& os, const ModInt& m) {
+        os << m.value;
+        return os;
+    }
+
+    friend istream& operator>>(istream& is, ModInt& m) {
+        is >> m.value;
+        m.value = m.value % m.mod;
+        return is;
+    }
+};
