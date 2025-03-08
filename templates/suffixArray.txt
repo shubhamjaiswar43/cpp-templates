@@ -1,0 +1,114 @@
+class SuffixArray {
+    int n;
+    string s;
+    vector<vector<int>> c;
+    vector<int> suffixArray, lg;
+    vector<int> sort_cyclic_shifts(string &s) {
+        int n = s.size();
+        const int alphabet = 256;
+        vector<int> p(n), c(n), cnt(max(alphabet, n), 0);
+        for (int i = 0; i < n; i++) cnt[s[i]]++;
+        for (int i = 1; i < alphabet; i++) cnt[i] += cnt[i - 1];
+        for (int i = 0; i < n; i++) p[--cnt[s[i]]] = i;
+        c[p[0]] = 0;
+        int classes = 1;
+        for (int i = 1; i < n; i++) {
+            if (s[p[i]] != s[p[i - 1]]) classes++;
+            c[p[i]] = classes - 1;
+        }
+        vector<int> pn(n), cn(n);
+        for (int h = 0; (1 << h) < n; ++h) {
+            this->c.push_back(c);
+            for (int i = 0; i < n; i++) {
+                pn[i] = p[i] - (1 << h);
+                if (pn[i] < 0) pn[i] += n;
+            }
+            fill(cnt.begin(), cnt.begin() + classes, 0);
+            for (int i = 0; i < n; i++) cnt[c[pn[i]]]++;
+            for (int i = 1; i < classes; i++) cnt[i] += cnt[i - 1];
+            for (int i = n - 1; i >= 0; i--) p[--cnt[c[pn[i]]]] = pn[i];
+            cn[p[0]] = 0;
+            classes = 1;
+            for (int i = 1; i < n; i++) {
+                pair<int, int> cur = {c[p[i]], c[(p[i] + (1 << h)) % n]};
+                pair<int, int> prev = {c[p[i - 1]],
+                                       c[(p[i - 1] + (1 << h)) % n]};
+                if (cur != prev) ++classes;
+                cn[p[i]] = classes - 1;
+            }
+            c.swap(cn);
+        }
+        return p;
+    }
+    int compare(int i, int j, int k, int l) {
+        pair<int, int> a = {c[k][i], c[k][(i + l - (1 << k)) % n]};
+        pair<int, int> b = {c[k][j], c[k][(j + l - (1 << k)) % n]};
+        return a == b ? 0 : a < b ? -1 : 1;
+    }
+    void computeLog(int MAXN) {
+        lg.resize(MAXN + 1);
+        lg[1] = 0;
+        for (int i = 2; i <= MAXN; i++) lg[i] = lg[i / 2] + 1;
+    }
+
+   public:
+    int compare(int i, int j, int l) {
+        // 0 => both equal, -1 1st one smaller, 1 2nd one smaller
+        int k = lg[l];
+        return compare(i, j, k, l);
+    }
+    SuffixArray(string s) {
+        this->n = s.size();
+        this->s = s;
+        s += "$";
+        this->suffixArray = sort_cyclic_shifts(s);
+        this->suffixArray.erase(this->suffixArray.begin());
+        computeLog(s.size() + 10);
+    }
+    vector<int> getSuffixArray() { return this->suffixArray; }
+    string getMinimalRotatedString() {
+        // returns smallest string from all possible rotation of string
+        string t;
+        int start = this->suffixArray.front();
+        while (start > 0 && this->s[start - 1] == this->s[start]) start--;
+        for (int i = start; i < this->s.size(); i++) t.push_back(this->s[i]);
+        for (int i = 0; i < start; i++) t.push_back(this->s[i]);
+        return t;
+    }
+    int checkExistence(string &ss, int m) {
+        string t;
+        for (int i = 0; i < ss.size(); i++) {
+            if (i + suffixArray[m] >= s.size()) break;
+            t.push_back(s[i + suffixArray[m]]);
+        }
+        if (t == ss) return 0;
+        if (t > ss) return -1;
+        return 1;
+    }
+    int exist(string &ss) {
+        // return 1st starting occurent of string ss in string s, else -1
+        int l = 0, h = suffixArray.size(), ans = INT_MAX;
+        while (l <= h) {
+            int m = l + ((h - l) >> 1);
+            int res = checkExistence(ss, m);
+            if (res == 0) ans = min(ans, suffixArray[m]);
+            if (res < 0) {
+                h = m - 1;
+            } else {
+                l = m + 1;
+            }
+        }
+        return ans == INT_MAX ? -1 : ans;
+    }
+    int lcp(int i, int j) {
+        int ans = 0;
+        for (int k = lg[n]; k >= 0; k--) {
+            if (c[k][i % n] == c[k][j % n]) {
+                ans += 1 << k;
+                i += 1 << k;
+                j += 1 << k;
+            }
+        }
+        return ans;
+    }
+};

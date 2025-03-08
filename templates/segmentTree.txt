@@ -1,0 +1,72 @@
+class SegTree {
+    vector<int> t, unprop;
+    vector<bool> isLazy;
+    int n;
+    void build(vector<int> &v, int l, int r, int loc) {
+        if (l == r) {
+            t[loc] = v[l];
+            return;
+        }
+        int m = l + (r - l) / 2;
+        build(v, l, m, 2 * loc);
+        build(v, m + 1, r, 2 * loc + 1);
+        t[loc] = t[2 * loc] + t[2 * loc + 1];
+    }
+    void pushDown(int loc, int l, int r) {
+        if (!isLazy[loc]) return;
+        isLazy[loc] = false;
+        int m = l + (r - l) / 2;
+        giveLaziness(2 * loc, l, m, unprop[loc]);
+        giveLaziness(2 * loc + 1, m + 1, r, unprop[loc]);
+        unprop[loc] = 0;
+    }
+    void giveLaziness(int loc, int l, int r, int val) {
+        isLazy[loc] = (l != r);
+        t[loc] += (r - l + 1) * val;
+        if (isLazy[loc]) unprop[loc] += val;
+    }
+    int query(int loc, int l, int r, int L, int R) {
+        if (R < l || r < L) return 0;
+        if (L <= l && r <= R) return t[loc];
+        int m = l + (r - l) / 2;
+        pushDown(loc, l, r);
+        return query(2 * loc, l, m, L, R) + query(2 * loc + 1, m + 1, r, L, R);
+    }
+    void update(int loc, int l, int r, int ind, int val) {
+        if (ind < l || r < ind) return;
+        if (l == r) {
+            t[loc] += val;
+            return;
+        }
+        pushDown(loc, l, r);
+        int m = l + (r - l) / 2;
+        update(2 * loc, l, m, ind, val);
+        update(2 * loc + 1, m + 1, r, ind, val);
+        t[loc] = t[2 * loc] + t[2 * loc + 1];
+    }
+    void rangeUpdate(int loc, int l, int r, int L, int R, int val) {
+        if (R < l || r < L) return;
+        if (L <= l && r <= R) {
+            giveLaziness(loc, l, r, val);
+            return;
+        }
+        pushDown(loc, l, r);
+        int m = l + (r - l) / 2;
+        rangeUpdate(2 * loc, l, m, L, R, val);
+        rangeUpdate(2 * loc + 1, m + 1, r, L, R, val);
+    }
+
+   public:
+    SegTree(vector<int> &v) {
+        n = v.size();
+        t = vector<int>(4 * n);
+        unprop = vector<int>(4 * n, 0);
+        isLazy = vector<bool>(4 * n, false);
+        build(v, 0, n - 1, 1);
+    }
+    int query(int L, int R) { return query(1, 0, n - 1, L, R); }
+    void update(int ind, int val) { update(1, 0, n - 1, ind, val); }
+    void rangeUpdate(int L, int R, int val) {
+        rangeUpdate(1, 0, n - 1, L, R, val);
+    }
+};

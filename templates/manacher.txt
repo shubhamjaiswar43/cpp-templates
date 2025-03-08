@@ -1,0 +1,14 @@
+//returns an array(p) where for every i s[(i-p[i]) .... (i+p[i])] is a palindrome
+//this is helpful only for odd length(so for even length we will add "#" between each character so even length palindrome can be identify by this(by add # even length palindrome also become odd [ex. abba => #a#b#b#a#]))
+vector<int> manacher_odd(string s) {
+    int n = s.size();
+    s = "$" + s + "^";
+    vector<int> p(n + 2);
+    int l = 1, r = 1;
+    for (int i = 1; i <= n; i++) {
+        p[i] = max(0, min(r - i, p[l + (r - i)]));
+        while (s[i - p[i]] == s[i + p[i]]) p[i]++;
+        if (r < i + p[i]) l = i - p[i], r = i + p[i];
+    }
+    return vector<int>(begin(p) + 1, end(p) - 1);
+}

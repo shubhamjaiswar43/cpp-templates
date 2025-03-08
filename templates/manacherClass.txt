@@ -1,0 +1,59 @@
+class Manacher {
+    string s, t;
+    vector<int> p;
+    string stuff(string &s) {
+        string t;
+        t.push_back('$');
+        t.push_back('#');
+        for (auto &ch : s) {
+            t.push_back(ch);
+            t.push_back('#');
+        }
+        t.push_back('^');
+        return t;
+    }
+    vector<int> manacher(string &s) {
+        int n = s.size();
+        vector<int> p(n, 0);
+        int l = 0, r = 1;
+        for (int i = 1; i < n; i++) {
+            p[i] = max(0, min(r - i, p[l + r - i]));
+            while (s[i - p[i]] == s[i + p[i]]) p[i]++;
+            if (i + p[i] > r) {
+                l = i - p[i];
+                r = i + p[i];
+            }
+        }
+        return vector<int>(begin(p) + 1, end(p) - 1);
+    }
+
+   public:
+    Manacher(string &s) {
+        this->s = s;
+        this->t = stuff(s);
+        p = manacher(this->t);
+    }
+    bool isPalindrome(int l, int r) {
+        int size = r - l + 1;
+        int cent = -1;
+        if (size & 1) {  // odd
+            cent = 2 * (l + (size / 2)) + 1;
+        } else {  // even
+            cent = 2 * r + 1 - (size - 1);
+        }
+        return p[cent] > size;
+    }
+    string getLongestPalindrome() {
+        int mx = *max_element(p.begin(), p.end());
+        for (int i = 0; i < p.size(); i++) {
+            if (p[i] == mx) {
+                if (p[i] == '#') {  // even palindrome
+                    return s.substr((i / 2) - (mx / 2), mx - 1);
+                } else {  // odd palindrome
+                    return s.substr((i / 2) - ((mx - 1) / 2), mx - 1);
+                }
+            }
+        }
+        return "";
+    }
+};

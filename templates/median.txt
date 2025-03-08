@@ -1,0 +1,63 @@
+class Median {
+    int leftSum = 0, rightSum = 0;
+    set<int> left, right;
+
+   public:
+    void add(int num) {
+        if (size(left) == size(right)) {
+            if (right.empty() || num <= *right.begin()) {
+                leftSum += num;
+                left.insert(num);
+            } else {
+                leftSum += *right.begin();
+                left.insert(*right.begin());
+                rightSum -= *right.begin();
+                right.erase(right.begin());
+                rightSum += num;
+                right.insert(num);
+            }
+        } else {
+            leftSum += num;
+            left.insert(num);
+            rightSum += *left.rbegin();
+            right.insert(*left.rbegin());
+            leftSum -= *left.rbegin();
+            left.erase(*left.rbegin());
+        }
+    }
+    bool remove(int num) {
+        bool leftExist = (left.find(num) != left.end());
+        bool rightExist = (right.find(num) != right.end());
+        if (!leftExist && !rightExist) {
+            return false;
+        } else if (size(left) == size(right)) {
+            if (rightExist) {
+                rightSum -= num;
+                right.erase(num);
+            } else {
+                leftSum -= num;
+                left.erase(num);
+                leftSum += *right.begin();
+                left.insert(*right.begin());
+                rightSum -= *right.begin();
+                right.erase(right.begin());
+            }
+        } else {
+            if (leftExist) {
+                leftSum -= num;
+                left.erase(num);
+            } else {
+                rightSum -= num;
+                right.erase(num);
+                rightSum += *left.rbegin();
+                right.insert(*left.rbegin());
+                leftSum -= *left.rbegin();
+                left.erase(*left.rbegin());
+            }
+        }
+        return true;
+    }
+    int getLeftSum() { return leftSum; }
+    int getRightSum() { return rightSum; }
+    int getMedium() { return left.empty() ? -1 : *left.rbegin(); }
+};

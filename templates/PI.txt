@@ -1,0 +1,10 @@
+vector<int> PI(string &s) {
+    vector<int> pi(1, 0);
+    int k = 0;
+    for (int i = 1; i < s.size(); i++) {
+        while (k > 0 && s[k] != s[i]) k = pi[k - 1];
+        if (s[k] == s[i]) k++;
+        pi.push_back(k);
+    }
+    return pi;
+}
